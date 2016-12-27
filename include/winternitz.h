@@ -25,7 +25,9 @@
 
 
 #define WINTERNITZ_SEC_LVL	128
-#define WINTERNITZ_W		2
+#ifndef WINTERNITZ_W
+    #define WINTERNITZ_W		2
+#endif
 #define WINTERNITZ_N 		128
 
 #if WINTERNITZ_W > 8

@@ -1,6 +1,18 @@
 CC?=gcc
-CFLAGS=-std=c99 -Wall -pedantic -I include 
+#ifneq (,$(MSS_HEIGHT),)
+ifneq ("", "$(MSS_HEIGHT)")
+    MSS_PARAMS:= -DMSS_HEIGHT=$(MSS_HEIGHT)
+endif
+ifneq ("","$(MSS_K)")
+    MSS_PARAMS+= -DMSS_K=$(MSS_K)
+endif
+ifneq ("","$(WINTERNITZ_W)")
+    MSS_PARAMS+=-DWINTERNITZ_W=$(WINTERNITZ_W)
+endif
+
+CFLAGS=-std=c99 -Wall -pedantic -I include $(MSS_PARAMS)
 MSS_OBJS=bin/winternitz.o bin/util.o bin/hash.o bin/aes.o bin/ti_aes.o
+
 
 all:	execs winternitz mss libs
 
