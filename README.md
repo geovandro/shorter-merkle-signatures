@@ -16,23 +16,23 @@ The file *mss-test* tests the signatures for all the leaves and authentication p
 
 You can change the tree height by using the following compilation flag
 
-  make MSS_HEIGHT=5
+  **make MSS_HEIGHT=5**
 
 Notice that treehash algorithm is being used, this the parameter MSS_K should be changed accordingly.
 The restrictions on MSS_K are:
-  1) (MSS_HEIGHT - MSS_K) must be even
-  2) 2 <= K < MSS_HEIGHT
+  1. (MSS_HEIGHT - MSS_K) must be even
+  2. 2 <= K < MSS_HEIGHT
 Thus, for MSS_HEIGHT=5, MSS_K in {3}.
 
-  make MSS_HEIGHT=5 MSS_K=3
+>  **make MSS_HEIGHT=5 MSS_K=3**
 
 Similarly, for MSS_HEIGHT=6, MSS_K in {2,4}.
 
-  make MSS_HEIGHT=6 MSS_K=2
+>  **make MSS_HEIGHT=6 MSS_K=2**
 
 or
 
-  make MSS_HEIGHT=6 MSS_K=4
+>  **make MSS_HEIGHT=6 MSS_K=4**
 
 Increasing MSS_K increases the state size but signing is faster.
 
@@ -45,8 +45,8 @@ A complete example is given bellow.
 
 Then, try to run
 
-  ./bin/mss-test
+>  **./bin/mss-test**
 
 or
 
-  ./bin/mss-bench
+>  **./bin/mss-bench**
