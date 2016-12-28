@@ -20,8 +20,10 @@ You can change the tree height by using the following compilation flag
 
 Notice that treehash algorithm is being used, this the parameter MSS_K should be changed accordingly.
 The restrictions on MSS_K are:
-  1. (MSS_HEIGHT - MSS_K) must be even
-  2. 2 <= K < MSS_HEIGHT
+
+1. (MSS_HEIGHT - MSS_K) must be even
+2. 2 <= K < MSS_HEIGHT
+
 Thus, for MSS_HEIGHT=5, MSS_K in {3}.
 
 >  **make MSS_HEIGHT=5 MSS_K=3**
