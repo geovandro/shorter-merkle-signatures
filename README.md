@@ -16,7 +16,7 @@ The file *mss-test* tests the signatures for all the leaves and authentication p
 
 You can change the tree height by using the following compilation flag
 
-  **make MSS_HEIGHT=5**
+>  **make MSS_HEIGHT=5**
 
 Notice that treehash algorithm is being used, this the parameter MSS_K should be changed accordingly.
 The restrictions on MSS_K are:
