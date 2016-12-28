@@ -43,7 +43,7 @@ The larger the WINTERNITZ_W the shorter the signature sizes, but keygen and sign
 The library currently provides three options: WINTERNITZ_W in {2,4,8}.
 A complete example is given bellow.
 
->  make MSS_HEIGHT=10 MSS_K=8 WINTERNITZ_W=2
+>  **make MSS_HEIGHT=10 MSS_K=8 WINTERNITZ_W=2**
 
 Then, try to run
 
