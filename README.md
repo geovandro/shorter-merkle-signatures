@@ -1,5 +1,5 @@
 # Shorter Merkle Signatures
-A reference implementation of the technique introduced in 2016 at "Shorter hash-based signatures" by G. Pereira, C. Puodzius and P. Barreto to reduce signature footprints of post-quantum Merkle-based digital signatures.
+A reference C implementation of the technique introduced in 2016 at "Shorter hash-based signatures" by G. Pereira, C. Puodzius and P. Barreto to reduce signature footprints of post-quantum Merkle-based digital signatures.
 
 
 Note: The current implementation is work in progress! Don't use it.
