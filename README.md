@@ -10,15 +10,15 @@ Just type make at the root directory.
 
 The executable files *mss-bench* and *mss-test* will be generated inside *bin* directory.
 
-The file mss-bench benchmarks key generation, signing and signature verification as well. All leaves (WINTERNITZ One Time Signatures) are used to sign and an average time for all leaves is taken.
+The file mss-bench benchmarks key generation, signing and signature verification as well. All leaves (WINTERNITZ One Time Signatures) of the Merkle tree are used to sign and an average time is taken (this time varies a little bit from leaf to leaf).
 
-The file *mss-test* tests the signatures for all the leaves and authentication paths in the merkle tree. It outputs the exact number of leaves failed in case that happens.
+The file *mss-test* tests the signatures for all the leaves and authentication paths in the merkle tree. It outputs the exact number of leaves for which the signature failed.
 
-You can change the tree height by using the following compilation flag
+The tree height can be changed by using the following compilation flag
 
 >  **make MSS_HEIGHT=5**
 
-Notice that treehash algorithm is being used, this the parameter MSS_K should be changed accordingly.
+Notice that treehash algorithm (BDS) is being used, so the parameter MSS_K should be changed accordingly.
 The restrictions on MSS_K are:
 
 1. (MSS_HEIGHT - MSS_K) must be even
