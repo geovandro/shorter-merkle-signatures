@@ -1,13 +1,19 @@
 CC?=gcc
-#ifneq (,$(MSS_HEIGHT),)
+
 ifneq ("", "$(MSS_HEIGHT)")
     MSS_PARAMS:= -DMSS_HEIGHT=$(MSS_HEIGHT)
+else	
+    MSS_PARAMS:= -DMSS_HEIGHT=10
 endif
 ifneq ("","$(MSS_K)")
     MSS_PARAMS+= -DMSS_K=$(MSS_K)
+else
+    MSS_PARAMS+= -DMSS_K=2
 endif
 ifneq ("","$(WINTERNITZ_W)")
     MSS_PARAMS+=-DWINTERNITZ_W=$(WINTERNITZ_W)
+else 
+    MSS_PARAMS+=-DWINTERNITZ_W=2
 endif
 
 CFLAGS=-std=c99 -Wall -pedantic -I include $(MSS_PARAMS)
@@ -53,7 +59,7 @@ libs:
 		gcc -c -fPIC -o bin/dyn_test.o src/test.c $(CFLAGS)
 		gcc -c -fPIC -o bin/dyn_winternitz.o src/winternitz.c $(CFLAGS)
 		gcc -c -fPIC -o bin/dyn_mss.o src/mss.c $(CFLAGS)
-		gcc -shared -Wl,-soname,libcrypto.so -o bin/libcrypto.so bin/dyn_*.o -lc
+		gcc -shared -Wl,-install_name,libcrypto.so -o bin/libcrypto.so bin/dyn_*.o -lc
 		ar rcs bin/libcrypto.a bin/aes.o bin/hash.o bin/winternitz.o bin/util.o bin/mss.o
 clean:		
 		rm -rf *.o bin/* lib/*

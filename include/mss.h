@@ -26,14 +26,7 @@
 #define MSS_OK 1
 #define MSS_ERROR 0
 
-
 #define MSS_SEC_LVL                     WINTERNITZ_SEC_LVL
-#ifndef MSS_HEIGHT
-    #define MSS_HEIGHT			10
-#endif
-#ifndef MSS_K
-    #define MSS_K 		        6
-#endif
 
 #define odd(x)	((x) % 2)
 #if odd(MSS_HEIGHT - MSS_K)
@@ -86,7 +79,7 @@ void deserialize_mss_state(struct mss_state *state, unsigned short *index, const
 void serialize_mss_skey(struct mss_state state, unsigned short index, const unsigned char skey[LEN_BYTES(MSS_SEC_LVL)], unsigned char buffer[MSS_SKEY_SIZE]);
 void deserialize_mss_skey(struct mss_state *state, unsigned short *index, unsigned char skey[LEN_BYTES(MSS_SEC_LVL)], const unsigned char buffer[]);
 
-void serialize_mss_signature(const unsigned char ots[MSS_OTS_SIZE], const struct mss_node v, const const struct mss_node authpath[MSS_HEIGHT], char unsigned buffer[MSS_SIGNATURE_SIZE]);
+void serialize_mss_signature(const unsigned char ots[MSS_OTS_SIZE], const struct mss_node v, const struct mss_node authpath[MSS_HEIGHT], char unsigned buffer[MSS_SIGNATURE_SIZE]);
 void deserialize_mss_signature(unsigned char ots[MSS_OTS_SIZE], struct mss_node *v, struct mss_node authpath[MSS_HEIGHT], const unsigned char signature[]);
 
 

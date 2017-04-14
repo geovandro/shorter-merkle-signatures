@@ -893,7 +893,7 @@ void deserialize_mss_skey(struct mss_state *state, unsigned short *index, unsign
         skey[i] = buffer[offset++];
 }
 
-void serialize_mss_signature(const unsigned char ots[MSS_OTS_SIZE], const struct mss_node v, const const struct mss_node authpath[MSS_HEIGHT], unsigned char *buffer) {
+void serialize_mss_signature(const unsigned char ots[MSS_OTS_SIZE], const struct mss_node v, const struct mss_node authpath[MSS_HEIGHT], unsigned char *buffer) {
     /*
      * Serialization: v || authpath || ots
      *

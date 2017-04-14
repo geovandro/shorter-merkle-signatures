@@ -33,11 +33,6 @@ void MMO_final(mmo_t *mmo, unsigned char tag[AES_128_BLOCK_SIZE]);
 void MMO_hash16(mmo_t *mmo, const unsigned char M[AES_128_BLOCK_SIZE], unsigned char tag[AES_128_BLOCK_SIZE]);
 void MMO_hash32(mmo_t *mmo, const unsigned char M1[AES_128_BLOCK_SIZE], const unsigned char M2[AES_128_BLOCK_SIZE], unsigned char tag[AES_128_BLOCK_SIZE]);
 
-//forward secure pseudo-random generator
-//short fsprg_counter = 0;
-//void fsprg(unsigned char seed[16], unsigned char out1[16], unsigned char out2[32]);
-//void fsprg_restart();
-
 void prg16(short input, const unsigned char seed[16], unsigned char output[16]);
 
 #endif // __HASH_H

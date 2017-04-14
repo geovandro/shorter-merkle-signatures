@@ -95,7 +95,9 @@ void bench_hash() {
         }
     }
     
-    printf("Benchmarking hash init ...\n");
+    printf("Running %lu times each operation and taking the average.\n\n", benchs);
+    
+    printf("Benchmarking underlying hash - init ...\n");
     
     elapsed = -clock();
     for (k = 0; k < benchs; k++)
@@ -103,7 +105,7 @@ void bench_hash() {
     elapsed += clock();
     printf("Elapsed time: %.1f us\n\n", (1000000 * (float) elapsed) / CLOCKS_PER_SEC / benchs);
     
-    printf("Benchmarking hash update...\n");
+    printf("Benchmarking underlying hash - update...\n");
     elapsed = -clock();
     for (k = 0; k < benchs; k++) {
         MMO_update(&hash1, data[k], 16);
@@ -111,7 +113,7 @@ void bench_hash() {
     elapsed += clock();
     printf("Elapsed time: %.1f us\n\n", 1000000 * (float) elapsed / CLOCKS_PER_SEC / benchs);
 
-    printf("Benchmarking hash final...\n");
+    printf("Benchmarking underlying hash - final...\n");
     elapsed = -clock();
     for (k = 0; k < benchs; k++) {
         MMO_final(&hash1, digest[k]);
@@ -119,7 +121,7 @@ void bench_hash() {
     elapsed += clock();
     printf("Elapsed time: %.1f us\n\n", 1000000 * (float) elapsed / CLOCKS_PER_SEC / benchs);    
         
-    printf("Benchmarking 16-byte input and ouput hash ...\n");
+    printf("Benchmarking a fixed 16-byte input/ouput hash ...\n");
     elapsed = -clock();    
     for (k = 0; k < benchs; k++) {
         MMO_hash16(&hash1, data[k], digest[k]);
@@ -127,7 +129,7 @@ void bench_hash() {
     elapsed += clock();
     printf("Elapsed time: %.1f us\n\n", 1000000 * (float) elapsed / CLOCKS_PER_SEC / benchs);    
     
-    printf("Benchmarking 32-byte input 16-byte output hash ...\n");
+    printf("Benchmarking a fixed 32-byte input, 16-byte output hash ...\n");
     elapsed = -clock();    
     for (k = 0; k < benchs; k++) {
         MMO_hash32(&hash1, data[k], data[k], digest[k]);
