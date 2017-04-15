@@ -19,7 +19,7 @@
 #define __BENCH
 
 enum BENCH {
-	BENCH_MSS_SIGN,
+	BENCH_MSS,
 	BENCH_HASH
 };
 

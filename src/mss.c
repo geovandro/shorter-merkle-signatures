@@ -64,7 +64,6 @@ void print_retain(const struct mss_state *state);
 #endif
 
 void _create_leaf(mmo_t *hash1, mmo_t *hash2, struct mss_node *node, const unsigned short leaf_index, const unsigned char seed[LEN_BYTES(MSS_SEC_LVL)]) {
-    /********* Arrange *********/
     unsigned char sk[LEN_BYTES(MSS_SEC_LVL)];
 
 #if defined(DEBUG) || defined(MSS_SELFTEST)
@@ -84,7 +83,6 @@ void _create_leaf(mmo_t *hash1, mmo_t *hash2, struct mss_node *node, const unsig
     printf("\n--Leaf %d. \n", leaf_index);
 #endif 
 #endif
-    /********* Act *********/
     prg16(leaf_index, seed, sk); // sk := prg(seed,leaf_index)
 
     // Compute and store v in node->value
@@ -94,7 +92,6 @@ void _create_leaf(mmo_t *hash1, mmo_t *hash2, struct mss_node *node, const unsig
     node->height = 0;
     node->index = leaf_index;
 
-    /********* Assert *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_node_valid(node));
     assert(node->height == 0);
@@ -103,7 +100,6 @@ void _create_leaf(mmo_t *hash1, mmo_t *hash2, struct mss_node *node, const unsig
 }
 
 void _stack_push(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, struct mss_node *node) {
-    /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(*index >= 0);
     assert(_node_valid(node));
@@ -115,7 +111,6 @@ void _stack_push(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, st
     /********* Act *********/
     stack[*index] = *node;
     *index = *index + 1;
-    /********* Assert *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(*index == prior_index + 1);
 #ifdef DEBUG
@@ -125,7 +120,6 @@ void _stack_push(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, st
 }
 
 void _stack_pop(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, struct mss_node *node) {
-    /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(*index > 0);
     const unsigned short prior_index = *index;
@@ -133,9 +127,7 @@ void _stack_pop(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, str
     print_stack_pop(stack, *index, 1);
 #endif
 #endif
-    /********* Act *********/
     *node = stack[--*index];
-    /********* Assert *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_node_valid(node));
     assert(*index == prior_index - 1);
@@ -146,8 +138,6 @@ void _stack_pop(struct mss_node stack[MSS_KEEP_SIZE], unsigned short *index, str
 }
 
 void _get_parent(mmo_t *hash, const struct mss_node *left_child, const struct mss_node *right_child, struct mss_node *parent) {
-    /********* Arrange *********/
-
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     unsigned char parent_height = left_child->height + 1;
     unsigned short parent_index = left_child->index / 2;
@@ -168,20 +158,17 @@ void _get_parent(mmo_t *hash, const struct mss_node *left_child, const struct ms
     mss_node_print(*left_child);
     printf("Right Child\n");
     mss_node_print(*right_child);
-    //getchar();
 #endif
 #endif
-    /********* Act *********/
     MMO_hash32(hash, left_child->value, right_child->value, parent->value);
 
     parent->height = left_child->height + 1;
     parent->index = (left_child->index >> 1);
-    /********* Assert *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_node_valid(parent));
-    // parent must be one height above childrem
+    // parent must be one height above children
     assert(parent->height == parent_height);
-    // parent must have index equal the half of the childrem
+    // parent must have index equal the half of the children
     assert(parent->index == parent_index);
 #ifdef DEBUG
     printf("Parent\n");
@@ -192,44 +179,32 @@ void _get_parent(mmo_t *hash, const struct mss_node *left_child, const struct ms
 }
 
 void init_state(struct mss_state *state) {
-    /********* Arrange *********/
-    /********* Act *********/
     state->stack_index = 0;
 
     memset(state->treehash_state, TREEHASH_FINISHED, MSS_TREEHASH_SIZE);
     memset(state->retain_index, 0, (MSS_K - 1) * sizeof (unsigned short));
-    /********* Assert *********/
-    //TODO
 }
 
 void _treehash_set_tailheight(struct mss_state *state, unsigned char h, unsigned char height) {
-    /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(h < MSS_TREEHASH_SIZE);
 #endif
-    /********* Act *********/
     state->treehash_state[h] &= 0xE0; // clear previous height
     state->treehash_state[h] |= (TREEHASH_MASK & height); // set new height
-    /********* Assert *********/
 }
 
 unsigned char _treehash_get_tailheight(struct mss_state *state, unsigned char h) {
-    /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(h < MSS_TREEHASH_SIZE);
 #endif
-    /********* Act *********/
     return (TREEHASH_MASK & state->treehash_state[h]);
 }
 
 void _treehash_state(struct mss_state *state, unsigned char h, enum TREEHASH_STATE th_state) {
-    /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(h >= 0 && h < MSS_TREEHASH_SIZE);
 #endif
-    /********* Act *********/
     state->treehash_state[h] = th_state; // set state
-    /********* Assert *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_treehash_get_tailheight(state, h) == 0);
 #endif
@@ -246,10 +221,8 @@ void _treehash_initialize(struct mss_state *state, unsigned char h, unsigned sho
 }
 
 unsigned char _treehash_height(struct mss_state *state, unsigned char h) {
-    /********* Arrange *********/
     unsigned char height = 0;
-    //TODO
-    /********* Act *********/
+
     switch (state->treehash_state[h] & ~TREEHASH_MASK) {
         case TREEHASH_NEW:
             height = h;
@@ -264,14 +237,11 @@ unsigned char _treehash_height(struct mss_state *state, unsigned char h) {
             height = TREEHASH_HEIGHT_INFINITY;
             break;
     }
-    /********* Assert *********/
-    //TODO
+
     return height;
 }
 
 void _treehash_update(mmo_t *hash1, mmo_t *hash2, struct mss_state *state, const unsigned char h, struct mss_node *node1, struct mss_node *node2, unsigned char seed[LEN_BYTES(MSS_SEC_LVL)]) {
-    /********* Arrange *********/
-    /********* Act *********/
     if (h < MSS_TREEHASH_SIZE - 1 && (state->treehash_seed[h] >= 11 * (1 << h)) && (((state->treehash_seed[h] - 11 * (1 << h)) % (1 << (2 + h))) == 0)) {
         node1->height = 0;
         node1->index = state->treehash_seed[h];
@@ -320,25 +290,21 @@ void _treehash_update(mmo_t *hash1, mmo_t *hash2, struct mss_state *state, const
             _treehash_state(state, h, TREEHASH_RUNNING);
         }
     }
-    /********* Assert *********/
 }
 
 void _retain_push(struct mss_state *state, struct mss_node *node) {
-    /********* Arrange *********/
     unsigned short index = (1 << (MSS_HEIGHT - node->height - 1)) - (MSS_HEIGHT - node->height - 1) - 1 + (node->index >> 1) - 1;
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_node_valid(node));
     assert(state->retain_index[node->height - (MSS_HEIGHT - MSS_K)] == 0);
 #endif
-    /********* Act *********/
     state->retain[index] = *node;
-    /********* Assert *********/
 }
 
 void _retain_pop(struct mss_state *state, struct mss_node *node, unsigned short h) {
-    /********* Arrange *********/
     unsigned char hbar = (MSS_HEIGHT - h - 1);
     unsigned short index = (1 << hbar) - hbar - 1 + state->retain_index[h - (MSS_HEIGHT - MSS_K)];
+    
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(h <= MSS_HEIGHT - 2);
     assert(h >= MSS_HEIGHT - MSS_K);
@@ -347,50 +313,44 @@ void _retain_pop(struct mss_state *state, struct mss_node *node, unsigned short 
     assert(index >= 0);
     assert(index < MSS_RETAIN_SIZE);
 #endif
-    /********* Act *********/
+    
     *node = state->retain[index];
     state->retain_index[h - (MSS_HEIGHT - MSS_K)]++;
-    /********* Assert *********/
+    
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert(_node_valid(node));
     assert(node->height == h);
 #endif
+    
 }
 
 void _init_state(struct mss_state *state, struct mss_node *node) {
     if (node->index == 1 && node->height < MSS_HEIGHT) {
-        /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
         assert(_node_valid(node));
         assert(node->index == 1);
         assert(node->height < MSS_HEIGHT);
 #endif
-        /********* Act *********/
         state->auth[node->height] = *node;
     }
     if (node->index == 3 && node->height < MSS_HEIGHT - MSS_K) {
-        /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
         assert(_node_valid(node));
         assert(node->index == 3);
         assert(node->height < MSS_HEIGHT - MSS_K);
 #endif
-        /********* Act *********/
         state->treehash[node->height] = *node;
         _treehash_initialize(state, node->height, node->index);
         _treehash_state(state, node->height, TREEHASH_FINISHED); // state is finished since it has already computed the respective treehash node
     }
     if (node->index >= 3 && ((node->index & 1) == 1) && node->height >= MSS_HEIGHT - MSS_K) {
-        /********* Arrange *********/
 #if defined(DEBUG) || defined(MSS_SELFTEST)
         assert(_node_valid(node));
         assert((node->height < MSS_HEIGHT - 1) && (node->height >= MSS_HEIGHT - MSS_K));
         assert(node->index >= 3 && ((node->index & 1) == 1));
 #endif
-        /********* Act *********/
         _retain_push(state, node);
     }
-    /********* Assert *********/
 }
 
 unsigned char _count_trailing_zeros(const unsigned short v) {
@@ -407,10 +367,9 @@ unsigned char _count_trailing_zeros(const unsigned short v) {
 }
 
 void mss_keygen_core(mmo_t *hash1, mmo_t *hash2, const unsigned char seed[LEN_BYTES(MSS_SEC_LVL)], struct mss_node *node1, struct mss_node *node2, struct mss_state *state, unsigned char pkey[NODE_VALUE_SIZE]) {
-    /********* Arrange *********/
     unsigned short i, index = 0;
     unsigned long pos;
-    /********* Act *********/
+
     init_state(state);
 
     for (pos = 0; pos < ((unsigned long) 1 << MSS_HEIGHT); pos++) {
@@ -439,14 +398,12 @@ void mss_keygen_core(mmo_t *hash1, mmo_t *hash2, const unsigned char seed[LEN_BY
 #endif
     for (i = 0; i < NODE_VALUE_SIZE; i++)
         pkey[i] = node1->value[i];
-    /********* Assert *********/
 }
 
 void _nextAuth(struct mss_state *state, struct mss_node *current_leaf, unsigned char seed[LEN_BYTES(MSS_SEC_LVL)], mmo_t *hash1, mmo_t *hash2, struct mss_node *node1, struct mss_node *node2, const unsigned short s) {
-    /********* Arrange *********/
     unsigned char tau = MSS_HEIGHT - 1;
     short min, h, i, j, k;
-    /********* Act *********/
+
     while ((s + 1) % (1 << tau) != 0)
         tau--;
 
@@ -492,13 +449,11 @@ void _nextAuth(struct mss_state *state, struct mss_node *current_leaf, unsigned 
             _treehash_update(hash1, hash2, state, k, node1, node2, seed);
         }
     }
-    /********* Assert *********/
 }
 
 void _get_pkey(mmo_t *hash, const struct mss_node auth[MSS_HEIGHT], struct mss_node *node, unsigned char *pkey) {
-    /********* Arrange *********/
     unsigned char i, h;
-    /********* Act *********/
+
     for (h = 0; h < MSS_HEIGHT; h++) {
 
 #if defined(DEBUG) || defined(MSS_SELFTEST)
@@ -533,52 +488,37 @@ void _get_pkey(mmo_t *hash, const struct mss_node auth[MSS_HEIGHT], struct mss_n
 
 /**
  * seed	 The initial seed for generating the private keys
- * v	 The leaf_index-th winternitz public key used as a nonce for the hash H(Y,v,M)
+ * v	 The leaf_index-th winternitz public key used as a nonce for the hash H(v,M)
  *
  */
 
-void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node *leaf, const char *data, unsigned short data_len,
-        mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, struct mss_node *node1, struct mss_node *node2,
-        unsigned char *sig, struct mss_node authpath[MSS_HEIGHT], const unsigned char *Y) {
-    /********* Arrange *********/
+void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node *leaf, const char *data, 
+                   unsigned short datalen, mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, 
+                   struct mss_node *node1, struct mss_node *node2,  unsigned char *sig, struct mss_node authpath[MSS_HEIGHT]) {
     unsigned char i;
-    mmo_t hash_mss;
     unsigned char sk[LEN_BYTES(MSS_SEC_LVL)];
+    unsigned char v[NODE_VALUE_SIZE];
+ 
 #if defined(DEBUG) || defined(MSS_SELFTEST)
     assert((leaf_index >= 0) && (leaf_index < (1 << MSS_HEIGHT)));
 #endif
-    /********* Act *********/
-
-    MMO_init(&hash_mss);
-    // Feed the hash to be signed with Y, i.e. H(Y,...)
-    MMO_update(&hash_mss, Y, 16);
 
     prg16(leaf_index, seed, sk);
     if (leaf_index % 2 == 0) { // leaf is a left child
 #ifdef DEBUG
-        printf("Calc leaf in sign: %d \n", leaf_index);
+        printf("Calculating leaf %d in sign. \n", leaf_index);
 #endif
-        // Compute and store v in leaf->value
-        winternitz_keygen(sk, hash1, hash2, leaf->value);
-
-        // Feed the hash to be signed with v, i.e. H(Y,v,...)
-        MMO_update(&hash_mss, leaf->value, NODE_VALUE_SIZE);
-
-        // leaf[leaf_index]->value = Hash(v)
-        MMO_hash16(hash1, leaf->value, leaf->value);
-
+        winternitz_keygen(sk, hash1, hash2, leaf->value); // Compute and store v in leaf->value
+        memcpy(&v,leaf->value,NODE_VALUE_SIZE);
+        MMO_hash16(hash1, leaf->value, leaf->value); // leaf[leaf_index]->value = Hash(v)
     } else { // leaf is a right child and it is already available in the authentication path
         memcpy(leaf->value, authpath[0].value, NODE_VALUE_SIZE);
-        // Feed the hash to be signed with v, i.e. H(Y,v,...)
-        MMO_update(&hash_mss, leaf->value, NODE_VALUE_SIZE);
+        memcpy(&v,leaf->value,NODE_VALUE_SIZE);        
     }
     leaf->height = 0;
     leaf->index = leaf_index;
 
-    // Feed the hash to be signed with data H(Y,v,data)
-    MMO_update(&hash_mss, (const unsigned char *) data, 16);
-    MMO_final(&hash_mss, h);
-
+    etcr_hash(h,v,NODE_VALUE_SIZE,data,datalen);
     winternitz_sign(sk, hash1, h, sig);
 
     for (i = 0; i < MSS_HEIGHT; i++) {
@@ -597,36 +537,23 @@ void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node
  * v	 The leaf_index-th Winternitz public key used as a nonce for the hash H(v,M)
  *
  */
+unsigned char mss_verify_core(struct mss_node authpath[MSS_HEIGHT], const char *data, unsigned short datalen, mmo_t *hash1, 
+                              mmo_t *hash2, unsigned char *h, unsigned short leaf_index, const unsigned char *sig, 
+                              unsigned char *x, struct mss_node *currentLeaf, const unsigned char *Y) {
+    winternitz_verify(x, hash1, hash2, h, sig, x); // x <- v
+    
+    etcr_hash(h,x,NODE_VALUE_SIZE,data,datalen);
 
-unsigned char mss_verify_core(struct mss_node authpath[MSS_HEIGHT], const char *data, unsigned short data_len, mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, const unsigned char *sig, unsigned char *x, struct mss_node *currentLeaf, const unsigned char *Y) {
-    /********* Arrange *********/
-    /********* Act *********/
-    mmo_t hash_mss;
-    MMO_init(&hash_mss);
-    // Feed the hash to be signed with Y, i.e. H(Y,...)
-    MMO_update(&hash_mss, Y, 16);
-
-    // compute v and put it in x
-    winternitz_verify(x, hash1, hash2, h, sig, x);
-
-    // Feed the hash to be signed with v, i.e. H(Y,v,...)
-    MMO_update(&hash_mss, x, NODE_VALUE_SIZE);
-    // Feed the hash to be signed with data H(Y,v,data)
-    MMO_update(&hash_mss, (const unsigned char *) data, data_len);
-    MMO_final(&hash_mss, h);
-
-    // leaf = Hash(v)
-    MMO_hash16(hash1, x, x);
+    MMO_hash16(hash1, x, x); // x <- leaf = Hash(v)
 
     _get_pkey(hash1, authpath, currentLeaf, x);
 
     if (memcmp(currentLeaf->value, Y, NODE_VALUE_SIZE) == 0) {
 #ifdef DEBUG
-        printf("Assinatura eh valida para folha %d\n", leaf_index);
+        printf("Signature is valid for leaf %d\n", leaf_index);
 #endif // DEBUG
         return MSS_OK;
     }
-    /********* Assert *********/
 
     return MSS_ERROR;
 }
@@ -697,7 +624,7 @@ unsigned char *mss_sign(unsigned char skey[MSS_SKEY_SIZE], const unsigned char d
 
     deserialize_mss_skey(&state, &index, seed, skey);
 
-    mss_sign_core(&state, seed, &node[0], (char *) digest, 2 * MSS_SEC_LVL, &hash1, &hash2, hash, index, &node[1], &node[2], ots, authpath, pkey);
+    mss_sign_core(&state, seed, &node[0], (char *) digest, 2 * MSS_SEC_LVL, &hash1, &hash2, hash, index, &node[1], &node[2], ots, authpath);
     index++;
 
     serialize_mss_skey(state, index, seed, skey);

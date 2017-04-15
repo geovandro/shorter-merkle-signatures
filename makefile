@@ -16,7 +16,7 @@ else
     MSS_PARAMS+=-DWINTERNITZ_W=2
 endif
 
-CFLAGS=-std=c99 -Wall -pedantic -I include $(MSS_PARAMS)
+CFLAGS=-std=c99 -g -Wall -pedantic -I include $(MSS_PARAMS)
 MSS_OBJS=bin/winternitz.o bin/util.o bin/hash.o bin/aes.o bin/ti_aes.o
 
 

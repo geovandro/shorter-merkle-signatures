@@ -32,7 +32,7 @@ mmo_t hash1, hash2;
 
 unsigned char pkey_test[NODE_VALUE_SIZE];
 
-unsigned char seed_test[LEN_BYTES(MSS_SEC_LVL)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
+unsigned char seed[LEN_BYTES(MSS_SEC_LVL)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
 unsigned char h1[LEN_BYTES(WINTERNITZ_N)], h2[LEN_BYTES(WINTERNITZ_N)];
 unsigned char sig_test[WINTERNITZ_L*LEN_BYTES(WINTERNITZ_N)];
 unsigned char aux[LEN_BYTES(WINTERNITZ_N)];
@@ -42,13 +42,13 @@ unsigned short test_mss_signature() {
     unsigned short errors;
     unsigned long j;
 
-    char M[16] = " --Hello, world!";
+    char M[16] = "--Hello, world!!";
 
     MMO_init(&hash1);
     MMO_init(&hash2);
 
     // Compute Merkle Public Key and TreeHash state        
-    mss_keygen_core(&hash1, &hash2, seed_test, &nodes[0], &nodes[1], &state_test, pkey_test);
+    mss_keygen_core(&hash1, &hash2, seed, &nodes[0], &nodes[1], &state_test, pkey_test);
 
 #if defined(VERBOSE) && defined(DEBUG)
     Display("Merkle Public Key", pkey_test, NODE_VALUE_SIZE);
@@ -63,13 +63,13 @@ unsigned short test_mss_signature() {
     printf("Testing MSS for leaf %ld ...", j);
 #endif
 
-    mss_sign_core(&state_test, seed_test, &currentLeaf_test, (const char *) M, strlen(M), &hash1, &hash2, h1, j, &nodes[0], &nodes[1], sig_test, authpath_test, pkey_test);
+    mss_sign_core(&state_test, seed, &currentLeaf_test, (const char *) M, strlen(M)-1, &hash1, &hash2, h1, j, &nodes[0], &nodes[1], sig_test, authpath_test);
 
 #if defined(VERBOSE) && defined(DEBUG)
     Display("", sig_test, 16);
 #endif
 
-    if (mss_verify_core(authpath_test, (const char *) M, strlen(M), &hash1, &hash2, h1, j, sig_test, aux, &currentLeaf_test, pkey_test) == MSS_OK) {
+    if (mss_verify_core(authpath_test, (const char *) M, strlen(M)-1, &hash1, &hash2, h1, j, sig_test, aux, &currentLeaf_test, pkey_test) == MSS_OK) {
 
 #if defined(VERBOSE) && defined(DEBUG)
         printf(" [OK]\n");
@@ -224,7 +224,7 @@ unsigned short do_test(enum TEST operation) {
     return errors;
 }
 
-#ifdef SELF_TEST
+//#ifdef SELF_TEST
 
 int main() {
     
@@ -237,4 +237,4 @@ int main() {
     return 0;
 }
 
-#endif
+//#endif

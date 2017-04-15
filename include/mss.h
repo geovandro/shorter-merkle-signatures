@@ -84,7 +84,7 @@ void deserialize_mss_signature(unsigned char ots[MSS_OTS_SIZE], struct mss_node 
 
 
 void mss_keygen_core(mmo_t *hash1, mmo_t *hash2, const unsigned char seed[LEN_BYTES(MSS_SEC_LVL)], struct mss_node *node1, struct mss_node *node2, struct mss_state *state, unsigned char pkey[NODE_VALUE_SIZE]);
-void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node *leaf, const char *msg, unsigned short len, mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, struct mss_node *node1, struct mss_node *node2, unsigned char *ots, struct mss_node authpath[MSS_HEIGHT], const unsigned char *Y);
+void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node *leaf, const char *msg, unsigned short len, mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, struct mss_node *node1, struct mss_node *node2, unsigned char *ots, struct mss_node authpath[MSS_HEIGHT]);
 unsigned char mss_verify_core(struct mss_node authpath[MSS_HEIGHT], const char *msg, unsigned short len, mmo_t *hash1, mmo_t *hash2, unsigned char *h, unsigned short leaf_index, const unsigned char *ots, unsigned char *x, struct mss_node *current_leaf, const unsigned char pkey[NODE_VALUE_SIZE]);
 
 #ifdef DEBUG

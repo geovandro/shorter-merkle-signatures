@@ -23,6 +23,50 @@
 #include <assert.h>
 #endif
 
+void randomize_data(char *randomizeddata, unsigned char *r, const unsigned char *salt, const unsigned char saltlen, const char *data, const unsigned long datalen) {
+    
+    unsigned char rlen;
+    unsigned long len;
+ 
+    // Salt expansion to coincide the hash block size: r <- salt | salt | ... | salt | salt', where salt' may be truncated or not
+    memcpy(r,salt,saltlen);
+    rlen = saltlen;
+    while (rlen+saltlen < HASH_BLOCKSIZE) {
+        memcpy(&r[rlen],salt,saltlen);
+        rlen = rlen+saltlen;
+    }
+    if (rlen < HASH_BLOCKSIZE) {
+        memcpy(&r[rlen],salt,rlen+saltlen - HASH_BLOCKSIZE);
+    }
+    
+    // Prepare the randomized data: dr <- d1 xor r || d2 xor r || ... || dt xor r
+    len = 0;
+    while (len < datalen) {
+        for (int i = 0; i < HASH_BLOCKSIZE / sizeof(int); i++) { // Compute di xor r by integer steps
+            int temp = *((int*)&data[len+i*sizeof(int)]) ^ *((int*)&r[i*sizeof(int)]);
+            memcpy(&randomizeddata[len+i*sizeof(int)], &temp, sizeof(int));            
+        }
+        len = len + HASH_BLOCKSIZE;
+    }
+
+}
+
+void etcr_hash(unsigned char *h, const unsigned char *salt, const unsigned char saltlen, const char *data, const unsigned long datalen) {
+    mmo_t hash;
+    unsigned char r[HASH_BLOCKSIZE];
+    char randomizeddata[datalen];
+    
+    memcpy(randomizeddata,data,datalen);
+    
+    randomize_data(randomizeddata, r, salt, saltlen, data, datalen);    
+    
+    MMO_init(&hash);
+    MMO_update(&hash,r,HASH_BLOCKSIZE);
+    MMO_update(&hash,(unsigned char *)data,datalen);
+    MMO_final(&hash,h);
+    
+}
+
 void MMO_init(mmo_t *mmo) {
     mmo->t = 16; // one AES block
     mmo->n = 0;
