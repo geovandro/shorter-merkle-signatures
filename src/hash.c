@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Geovandro Pereira, Cassius Puodzius, Paulo Barreto
+ * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius, Paulo Barreto
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,27 +23,34 @@
 #include <assert.h>
 #endif
 
-void randomize_data(char *randomizeddata, unsigned char *r, const unsigned char *salt, const unsigned char saltlen, const char *data, const unsigned long datalen) {
-    
-    unsigned char rlen;
+void rmx_salt(unsigned char *rp, const unsigned char *r, const unsigned int rlen) {
+    // Salt expansion to coincide the hash block size: rp <- r | r | ... | r | r, where last r may be truncated
+    unsigned char rplen;  
+    if (rlen > HASH_BLOCKSIZE) {
+        memcpy(rp,r,HASH_BLOCKSIZE);
+        return;
+    }
+    memcpy(rp,r,rlen);  
+    rplen = rlen;
+    while (rplen+rlen < HASH_BLOCKSIZE) {
+        memcpy(&rp[rplen],r,rlen);
+        rplen = rplen+rlen;
+    }
+    if (rplen < HASH_BLOCKSIZE) {
+        memcpy(&rp[rplen],r,rplen+rlen - HASH_BLOCKSIZE);
+    }
+}
+
+void rmx(char *randomizeddata, unsigned char *rp, const unsigned char *r, const unsigned char rlen, const char *d, const unsigned long dlen) {
     unsigned long len;
  
-    // Salt expansion to coincide the hash block size: r <- salt | salt | ... | salt | salt', where salt' may be truncated or not
-    memcpy(r,salt,saltlen);
-    rlen = saltlen;
-    while (rlen+saltlen < HASH_BLOCKSIZE) {
-        memcpy(&r[rlen],salt,saltlen);
-        rlen = rlen+saltlen;
-    }
-    if (rlen < HASH_BLOCKSIZE) {
-        memcpy(&r[rlen],salt,rlen+saltlen - HASH_BLOCKSIZE);
-    }
+    rmx_salt(rp,r,rlen);
     
-    // Prepare the randomized data: dr <- d1 xor r || d2 xor r || ... || dt xor r
+    // Prepare the randomized data: drp <- d1 xor rp || d2 xor rp || ... || dt xor rp
     len = 0;
-    while (len < datalen) {
-        for (int i = 0; i < HASH_BLOCKSIZE / sizeof(int); i++) { // Compute di xor r by integer steps
-            int temp = *((int*)&data[len+i*sizeof(int)]) ^ *((int*)&r[i*sizeof(int)]);
+    while (len < (dlen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE) {
+        for (int i = 0; i < HASH_BLOCKSIZE / sizeof(int); i++) { // Compute di xor rp by integer steps
+            int temp = *((int*)&d[len+i*sizeof(int)]) ^ *((int*)&rp[i*sizeof(int)]);
             memcpy(&randomizeddata[len+i*sizeof(int)], &temp, sizeof(int));            
         }
         len = len + HASH_BLOCKSIZE;
@@ -51,18 +58,18 @@ void randomize_data(char *randomizeddata, unsigned char *r, const unsigned char 
 
 }
 
-void etcr_hash(unsigned char *h, const unsigned char *salt, const unsigned char saltlen, const char *data, const unsigned long datalen) {
+void etcr_hash(unsigned char *h, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen) {
     mmo_t hash;
-    unsigned char r[HASH_BLOCKSIZE];
-    char randomizeddata[datalen];
+    unsigned char rp[HASH_BLOCKSIZE];
+    char randomizeddata[(datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE];
     
-    memcpy(randomizeddata,data,datalen);
+    memcpy(&randomizeddata,data,datalen);
     
-    randomize_data(randomizeddata, r, salt, saltlen, data, datalen);    
+    rmx(randomizeddata, rp, r, rlen, data, datalen);    
     
     MMO_init(&hash);
-    MMO_update(&hash,r,HASH_BLOCKSIZE);
-    MMO_update(&hash,(unsigned char *)data,datalen);
+    MMO_update(&hash,rp,HASH_BLOCKSIZE);
+    MMO_update(&hash,(unsigned char *)randomizeddata,datalen);
     MMO_final(&hash,h);
     
 }

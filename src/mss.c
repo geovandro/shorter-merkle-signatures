@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016 Geovandro Pereira, Cassius Puodzius
+ * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -529,7 +529,7 @@ void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node
 
     if (leaf_index <= ((unsigned long) 1 << MSS_HEIGHT) - 2)
         _nextAuth(state, leaf, seed, hash1, hash2, node1, node2, leaf_index);
-    /********* Assert *********/
+
 }
 
 /**
