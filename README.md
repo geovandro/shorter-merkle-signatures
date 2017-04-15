@@ -1,8 +1,8 @@
 # Shorter Merkle Signatures
-A C reference implementation of the technique introduced at "Shorter hash-based signatures" by G. Pereira, C. Puodzius and P. Barreto in 2016 to reduce signature footprints of post-quantum Merkle-based digital signatures.
+An improved C reference implemented on top of the technique introduced at "Shorter hash-based signatures" by G. Pereira, C. Puodzius and P. Barreto in 2016 to reduce signature footprints of post-quantum Merkle-based digital signatures.
 
 
-Note: This implementation is intended for academic purposes. It is not completely ready for production.
+Note: This library is intended for academic purposes. It is not completely ready for production.
 
 # Compilation instructions
 
