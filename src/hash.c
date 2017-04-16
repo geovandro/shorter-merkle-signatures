@@ -61,7 +61,7 @@ void rmx(char *randomizeddata, unsigned char *rp, const unsigned char *r, const 
 void etcr_hash(unsigned char *h, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen) {
     mmo_t hash;
     unsigned char rp[HASH_BLOCKSIZE];
-    char randomizeddata[(datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE];
+    char randomizeddata[HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE)];
     
     memcpy(&randomizeddata,data,datalen);
     
