@@ -18,9 +18,12 @@
 #ifndef __HASH_H
 #define __HASH_H
 
+#include <stdint.h>
 #include "aes_128.h"
+#include "sph_sha2.h"
 
-#define HASH_BLOCKSIZE AES_128_BLOCK_SIZE
+//#define HASH_BLOCKSIZE AES_128_BLOCK_SIZE
+#define HASH_BLOCKSIZE 64 // SHA256 block size is 512 bits
 
 typedef struct {
     unsigned char H[AES_128_KEY_SIZE]; // hash chaining state
@@ -55,6 +58,7 @@ void MMO_update(mmo_t *mmo, const unsigned char *M, unsigned int m);
 void MMO_final(mmo_t *mmo, unsigned char tag[AES_128_BLOCK_SIZE]);
 void MMO_hash16(mmo_t *mmo, const unsigned char M[AES_128_BLOCK_SIZE], unsigned char tag[AES_128_BLOCK_SIZE]);
 void MMO_hash32(mmo_t *mmo, const unsigned char M1[AES_128_BLOCK_SIZE], const unsigned char M2[AES_128_BLOCK_SIZE], unsigned char tag[AES_128_BLOCK_SIZE]);
+void hash32(const unsigned char *in, unsigned int inlen, unsigned char *out);
 
 /**
  * The randomized hashing (enhanced target collision resistance (eTCR) notion) described by Halevi and Krawczyk at CRYPTO'06
@@ -69,6 +73,6 @@ void MMO_hash32(mmo_t *mmo, const unsigned char M1[AES_128_BLOCK_SIZE], const un
  */
 void etcr_hash(unsigned char *h, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen);
 
-void prg16(short input, const unsigned char seed[16], unsigned char output[16]);
+void prg16(uint64_t input, const unsigned char seed[16], unsigned char output[16]);
 
 #endif // __HASH_H

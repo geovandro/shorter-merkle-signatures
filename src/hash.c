@@ -16,7 +16,6 @@
  */
 
 #include "hash.h"
-#include "aes_128.h"
 #include <string.h>
 
 #ifdef DEBUG
@@ -59,18 +58,12 @@ void rmx(char *randomizeddata, unsigned char *rp, const unsigned char *r, const 
 }
 
 void etcr_hash(unsigned char *h, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen) {
-    mmo_t hash;
     unsigned char rp[HASH_BLOCKSIZE];
-    char randomizeddata[(datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE];
+    char randomizeddata[HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE)];
     
     memcpy(&randomizeddata,data,datalen);
-    
-    rmx(randomizeddata, rp, r, rlen, data, datalen);    
-    
-    MMO_init(&hash);
-    MMO_update(&hash,rp,HASH_BLOCKSIZE);
-    MMO_update(&hash,(unsigned char *)randomizeddata,datalen);
-    MMO_final(&hash,h);
+    rmx(randomizeddata, rp, r, rlen, data, datalen);   
+    hash32((const unsigned char *)randomizeddata, HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE), h);
     
 }
 
@@ -219,10 +212,25 @@ void MMO_hash32(mmo_t *mmo, const unsigned char M1[16], const unsigned char M2[1
     memcpy(tag, mmo->H, 16);
 }
 
-void prg16(short input, const unsigned char seed[16], unsigned char output[16]) {
-    memset(output, 0, 16);
-    memcpy(output, &input, sizeof (short));
-    aes_128_encrypt(output, output, seed);
+void hash32(const unsigned char *in, unsigned int inlen, unsigned char *out) {
+    sph_sha256_context ctx;
+    
+    sph_sha256_init(&ctx);
+    sph_sha256(&ctx, in, inlen);
+    sph_sha256_close(&ctx, out);
+    
+}
+
+void prg16(uint64_t input, const unsigned char seed[16], unsigned char output[16]) {
+    sph_sha256_context ctx;
+    unsigned char temp[32];
+    
+    sph_sha256_init(&ctx);
+    sph_sha256(&ctx, seed, 16);
+    sph_sha256(&ctx, (unsigned char *)&input, 8);
+    sph_sha256_close(&ctx, temp);
+    memcpy(output, temp, 16);
+    
 }
 
 

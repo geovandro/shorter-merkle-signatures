@@ -17,7 +17,7 @@ else
 endif
 
 CFLAGS=-std=c99 -g -Wall -pedantic -I include $(MSS_PARAMS)
-MSS_OBJS=bin/winternitz.o bin/util.o bin/hash.o bin/aes.o bin/ti_aes.o
+MSS_OBJS=bin/winternitz.o bin/util.o bin/hash.o bin/sha2.o bin/aes.o bin/ti_aes.o
 
 
 all:	execs winternitz mss libs
@@ -30,8 +30,12 @@ aes:	src/aes_128.c
 		make ti_aes
 		$(CC) src/aes_128.c -c -o bin/aes.o $(CFLAGS)
 
-hash:   src/hash.c		
+sha2:   src/sha2.c		
+		$(CC) src/$@.c -c -o bin/$@.o $(CFLAGS)
+
+hash:   src/hash.c
 		make aes
+		make sha2
 		$(CC) src/$@.c -c -o bin/$@.o $(CFLAGS)
 
 util:	src/util.c
@@ -53,6 +57,7 @@ execs:	src/winternitz.c src/util.c src/test.c
 
 libs:
 		gcc -c -fPIC -o bin/dyn_ti_aes.o src/ti_aes.c $(CFLAGS)
+		gcc -c -fPIC -o bin/dyn_sha2.o src/sha2.c $(CFLAGS)	
 		gcc -c -fPIC -o bin/dyn_aes.o src/aes_128.c $(CFLAGS)
 		gcc -c -fPIC -o bin/dyn_hash.o src/hash.c $(CFLAGS)
 		gcc -c -fPIC -o bin/dyn_util.o src/util.c $(CFLAGS)
@@ -60,6 +65,6 @@ libs:
 		gcc -c -fPIC -o bin/dyn_winternitz.o src/winternitz.c $(CFLAGS)
 		gcc -c -fPIC -o bin/dyn_mss.o src/mss.c $(CFLAGS)
 		gcc -shared -Wl,-install_name,libcrypto.so -o bin/libcrypto.so bin/dyn_*.o -lc
-		ar rcs bin/libcrypto.a bin/aes.o bin/hash.o bin/winternitz.o bin/util.o bin/mss.o
+		ar rcs bin/libcrypto.a bin/aes.o bin/sha2.o bin/hash.o bin/winternitz.o bin/util.o bin/mss.o
 clean:		
 		rm -rf *.o bin/* lib/*

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius
+ * Copyright (C) 2015-2017 Geovandro Pereira
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 #define BENCH_KEYGEN 10
 #define BENCH_SIGNATURE ((unsigned long) 1 << MSS_HEIGHT)
 #define MSG_LEN_BENCH 16
+#define HASH_LEN LEN_BYTES(WINTERNITZ_N)
 
 struct mss_node nodes[2];
 struct mss_state state_bench;
@@ -39,12 +40,11 @@ mmo_t hash1, hash2;
 unsigned char pkey_test[NODE_VALUE_SIZE];
 
 unsigned char seed[LEN_BYTES(MSS_SEC_LVL)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
-unsigned char h1[LEN_BYTES(WINTERNITZ_N)], h2[LEN_BYTES(WINTERNITZ_N)];
-unsigned char sig_bench[WINTERNITZ_L*LEN_BYTES(WINTERNITZ_N)];
-unsigned char aux[LEN_BYTES(WINTERNITZ_N)];
+unsigned char h1[HASH_LEN], h2[HASH_LEN];
+unsigned char sig_bench[WINTERNITZ_L*HASH_LEN];
+unsigned char aux[HASH_LEN];
 
 void bench_mss_signature() {
-
     unsigned long i;
     unsigned char k;
     clock_t elapsed;
@@ -70,7 +70,7 @@ void bench_mss_signature() {
 
     elapsed = -clock();
     for (i = 0; i < BENCH_SIGNATURE; i++)
-        mss_sign_core(&state_bench, seed, &currentLeaf_bench, (const char *) M[i], MSG_LEN_BENCH, &hash1, &hash2, h1, i, &nodes[0], &nodes[1], sig_bench, authpath_bench);
+        mss_sign_core(&state_bench, seed, &currentLeaf_bench, (const char *) M[i], MSG_LEN_BENCH, &hash1, h1, i, &nodes[0], &nodes[1], sig_bench, authpath_bench);
 
     elapsed += clock();
     printf("Elapsed time: %.1f ms\n\n", 1000 * (float) elapsed / CLOCKS_PER_SEC / BENCH_SIGNATURE);
@@ -78,7 +78,7 @@ void bench_mss_signature() {
     printf("Benchmarking MSS verify ...\n");
     elapsed = -clock();
     for (i = 0; i < BENCH_SIGNATURE; i++)
-        mss_verify_core(authpath_bench, (const char *) M[i], MSG_LEN_BENCH, &hash1, &hash2, h1, i, sig_bench, aux, &currentLeaf_bench, pkey_test);
+        mss_verify_core(authpath_bench, (const char *) M[i], MSG_LEN_BENCH, h1, i, sig_bench, aux, &currentLeaf_bench, pkey_test);
 
     elapsed += clock();
     printf("Elapsed time: %.1f ms\n\n", 1000 * (float) elapsed / CLOCKS_PER_SEC / BENCH_SIGNATURE);
@@ -91,7 +91,7 @@ void bench_hash() {
     unsigned long k, hashbenchs = 10000;
     
     unsigned char data[hashbenchs][MSG_LEN_BENCH];
-    unsigned char digest[hashbenchs][HASH_BLOCKSIZE];
+    unsigned char digest[hashbenchs][HASH_LEN];
 
     for (k = 0; k < hashbenchs; k++) {
         for (int i = 0; i < MSG_LEN_BENCH; i++) {

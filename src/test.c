@@ -24,6 +24,8 @@
 #include "util.h"
 #endif
 
+#define HASH_LEN LEN_BYTES(WINTERNITZ_N)
+
 struct mss_node nodes[2];
 struct mss_state state_bench;
 struct mss_node currentLeaf_bench;
@@ -33,19 +35,18 @@ mmo_t hash1, hash2;
 unsigned char pkey_test[NODE_VALUE_SIZE];
 
 unsigned char seed[LEN_BYTES(MSS_SEC_LVL)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
-unsigned char h1[LEN_BYTES(WINTERNITZ_N)], h2[LEN_BYTES(WINTERNITZ_N)];
-unsigned char sig_bench[WINTERNITZ_L*LEN_BYTES(WINTERNITZ_N)];
-unsigned char aux[LEN_BYTES(WINTERNITZ_N)];
+unsigned char h1[HASH_LEN], h2[HASH_LEN];
+unsigned char sig_bench[WINTERNITZ_L*HASH_LEN];
+unsigned char aux[HASH_LEN];
 
 unsigned short test_mss_signature() {
 
     unsigned short errors;
-    unsigned long j;
+    uint64_t j;
 
     char M[16] = "--Hello, world!!";
 
     MMO_init(&hash1);
-    MMO_init(&hash2);
 
     // Compute Merkle Public Key and TreeHash state        
     mss_keygen_core(&hash1, &hash2, seed, &nodes[0], &nodes[1], &state_bench, pkey_test);
@@ -57,28 +58,27 @@ unsigned short test_mss_signature() {
 
     //Sign and verify for all j-th authentication paths
     errors = 0;
-    for (j = 0; j < ((unsigned long) 1 << MSS_HEIGHT); j++) {
+    for (j = 0; j < ((uint64_t) 1 << MSS_HEIGHT); j++) {
 
-#if defined(VERBOSE) && defined(DEBUG)
-    printf("Testing MSS for leaf %ld ...", j);
-#endif
+        #if defined(VERBOSE) && defined(DEBUG)
+        printf("Testing MSS for leaf %ld ...", j);
+        #endif
 
-    mss_sign_core(&state_bench, seed, &currentLeaf_bench, (const char *) M, strlen(M)-1, &hash1, &hash2, h1, j, &nodes[0], &nodes[1], sig_bench, authpath_bench);
+        mss_sign_core(&state_bench, seed, &currentLeaf_bench, M, strlen(M)-1, &hash1, h1, j, &nodes[0], &nodes[1], sig_bench, authpath_bench);
 
-#if defined(VERBOSE) && defined(DEBUG)
-    Display("", sig_bench, 16);
-#endif
+        #if defined(VERBOSE) && defined(DEBUG)
+        Display("", sig_bench, 16);
+         #endif
 
-    if (mss_verify_core(authpath_bench, (const char *) M, strlen(M)-1, &hash1, &hash2, h1, j, sig_bench, aux, &currentLeaf_bench, pkey_test) == MSS_OK) {
-
-#if defined(VERBOSE) && defined(DEBUG)
-        printf(" [OK]\n");
-#endif
-    } else {
-        errors++;
-#if defined(VERBOSE) && defined(DEBUG)
+        if (mss_verify_core(authpath_bench, M, strlen(M)-1, h1, j, sig_bench, aux, &currentLeaf_bench, pkey_test) == MSS_OK) {
+            #if defined(VERBOSE) && defined(DEBUG)
+            printf(" [OK]\n");
+            #endif
+        } else {
+            errors++;
+            #if defined(VERBOSE) && defined(DEBUG)
             printf(" [ERROR]\n");
-#endif
+            #endif
         }
     }
 
@@ -183,7 +183,7 @@ int test_mss_serialization() {
 #endif //test_mss_serialization
 
 unsigned short do_test(enum TEST operation) {
-    unsigned short errors = 0;
+    uint64_t errors = 0;
 
     switch (operation) {
         case TEST_MSS_SIGN:
@@ -194,7 +194,7 @@ unsigned short do_test(enum TEST operation) {
                 printf("All %u leaves tested.\n\n", (1 << MSS_HEIGHT));
             }
             else 
-                printf("Merkle Signature tests: FAILED. #Errors: %u \n\n", errors);
+                printf("Merkle Signature tests: FAILED. #Errors: %llu \n\n", errors);
 #endif
         break;
         case TEST_AES_ENC:
@@ -213,7 +213,7 @@ unsigned short do_test(enum TEST operation) {
             if (errors == 0)
                 printf("Merkle signature serialization tests: PASSED\n\n");
             else 
-                printf("Merkle signature serialization tests: FAILED. #Errors: %u \n\n", errors);
+                printf("Merkle signature serialization tests: FAILED. #Errors: %llu \n\n", errors);
 #endif            
             break;
 #endif
@@ -228,7 +228,7 @@ unsigned short do_test(enum TEST operation) {
 
 int main() {
     
-    printf("\nParameters:  WINTERNITZ_n=%u, Tree_Height=%u, Treehash_K=%u, WINTERNITZ_w=%u \n\n", MSS_SEC_LVL, MSS_HEIGHT, MSS_K, WINTERNITZ_W);
+    printf("\nParameters:  WINTERNITZ_n=%u, Tree_Height=%u, Treehash_K=%u, WINTERNITZ_w=%u \n\n", WINTERNITZ_N, MSS_HEIGHT, MSS_K, WINTERNITZ_W);
     
     //do_test(TEST_AES_ENC);
     do_test(TEST_MSS_SIGN);

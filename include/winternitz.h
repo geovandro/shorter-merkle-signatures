@@ -25,7 +25,7 @@
 
 
 #define WINTERNITZ_SEC_LVL	128
-#define WINTERNITZ_N 		128
+#define WINTERNITZ_N 		256
 
 #if WINTERNITZ_W > 8
 #error maximum value for w is 8 due to chosen data type in this implementation
@@ -48,11 +48,40 @@
 #define WINTERNITZ_L (WINTERNITZ_l1 + WINTERNITZ_CHECKSUM_SIZE)
 
 //#define GET_CHUNK(x, startbit) ((x & (unsigned)( (unsigned)((1 << WINTERNITZ_W) - 1) << startbit)) >> startbit)
-#define LEN_BYTES(len_bits) ((len_bits+7)/8)
+#define LEN_BYTES(bits) ((bits+7)/8)
 
-void winternitz_keygen(const unsigned char s[LEN_BYTES(WINTERNITZ_N)], mmo_t *hash1, mmo_t *hash2, unsigned char v[LEN_BYTES(WINTERNITZ_N)]);
-void winternitz_sign(const unsigned char s[LEN_BYTES(WINTERNITZ_N)], mmo_t *hash, unsigned char h[], unsigned char sig[]);
-unsigned char winternitz_verify(const unsigned char v[], mmo_t *hash1, mmo_t *hash2, unsigned char h[], const unsigned char sig[], unsigned char x[]);
+#define WINTERNITZ_SIG_SIZE WINTERNITZ_L*LEN_BYTES(WINTERNITZ_N)
+
+/**
+ * Compute a Winternitz public key v = H_N(x_{0}^{2^w-1}, x_{1}^{2^w-1}, ..., x_{L-1}^{2^w-1}), with L = ceil(N/w) + ceil(lg((2^w-1)*(N/w))/w), N = 256.
+ *
+ * @param s         the private signing key.
+ * @param v         the resulting verification key 
+ */
+void winternitz_keygen(const unsigned char s[LEN_BYTES(WINTERNITZ_SEC_LVL)], unsigned char v[LEN_BYTES(WINTERNITZ_N)]);
+
+/**
+ * Sign the value under private key s, yielding (x_{0:0}, x_{0:1}, x_{0:2}, x_{0:3}, ..., x_{(N/8-1):0}, x_{(N/8-1):1}, x_{(N/8-1):2}, x_{(N/8-1):3})
+ *
+ * @param s		 the private signing key.
+ * @param hash
+ * @param h		 buffer containing the message hash to be signed, computed outside as h = H(v,data)
+ * @param sig
+ */
+void winternitz_sign(const unsigned char s[LEN_BYTES(WINTERNITZ_SEC_LVL)], unsigned char *h, unsigned char *sig);
+
+/**
+ * Verify a signature on hash H(v,data)
+ *
+ * @param v         The verification key, used here as the random nonce as well.
+ * @param pubk
+ * @param hash1
+ * @param hash2
+ * @param h
+ * @param sig the signature
+ * @param x scratch (should match v at the end)
+ */
+unsigned char winternitz_verify(const unsigned char *v, unsigned char *h, const unsigned char *sig, unsigned char *x);
 
 
 #endif // __WINTERNITZ_H
