@@ -1,8 +1,14 @@
 # Shorter Merkle Signatures
-An improved C reference implemented on top of the technique introduced at "Shorter hash-based signatures" by G. Pereira, C. Puodzius and P. Barreto in 2016 to reduce signature footprints of post-quantum Merkle-based digital signatures.
+A C implementation of the post-quantum Merkle signature scheme (MSS) combinesd with the Winternitz one-time Signature (WOTS).
+
+It combines the recent technique for achieving shorter Merkle signatures at [1] and the provably secure WOTS based on pseudorandom functions proposed at [2].
 
 
 Note: This library is intended for academic purposes. It is not completely ready for production.
+
+[1] 2016, G. Pereira, C. Puodzius and P. Barreto. "Shorter hash-based signatures" Available at [`here`](http://www.sciencedirect.com/science/article/pii/S0164121215001466).
+
+[2] 2011. J. Buchmann, E. Dahmen, S. Ereth, A. Hulsing, M. Ruckert. On the Security of the Winternitz One-Time Signature Scheme. Available at [`here`](https://www.researchgate.net/profile/Andreas_Huelsing/publication/220335447_On_the_Security_of_the_Winternitz_One-Time_Signature_Scheme/links/0c960524bfdf3550f9000000.pdf)
 
 # Compilation instructions
 
