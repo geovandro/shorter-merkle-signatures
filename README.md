@@ -1,10 +1,10 @@
 # Shorter Merkle Signatures
-A C implementation of the post-quantum Merkle signature scheme (MSS) combinesd with the Winternitz one-time Signature (WOTS).
+A C implementation of the post-quantum Merkle signature scheme (MSS) combined with the Winternitz one-time Signature (WOTS).
 
-It combines the recent technique for achieving shorter Merkle signatures at [1] and the provably secure WOTS based on pseudorandom functions proposed at [2].
-
+This implementation is based on the recent technique to achieve shorter Merkle signatures [1] and the provably secure WOTS based on pseudorandom functions [2].
 
 Note: This library is intended for academic purposes. It is not completely ready for production.
+
 
 [1] 2016, G. Pereira, C. Puodzius and P. Barreto. "Shorter hash-based signatures" Available at [`here`](http://www.sciencedirect.com/science/article/pii/S0164121215001466).
 
