@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius, Paulo Barreto
+ * Copyright (C) 2017 Geovandro Pereira
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,32 +56,32 @@
  * Compute a Winternitz public key v = H_N(x_{0}^{2^w-1}, x_{1}^{2^w-1}, ..., x_{L-1}^{2^w-1}), with L = ceil(N/w) + ceil(lg((2^w-1)*(N/w))/w), N = 256.
  *
  * @param s         the private signing key.
+ * @param X         the fixed N-bit string for key generation (from WOTS-PRF)
  * @param v         the resulting verification key 
  */
-void winternitz_keygen(const unsigned char s[LEN_BYTES(WINTERNITZ_SEC_LVL)], unsigned char v[LEN_BYTES(WINTERNITZ_N)]);
+void winternitz_keygen(const unsigned char s[LEN_BYTES(WINTERNITZ_N)], unsigned char X[LEN_BYTES(WINTERNITZ_N)], unsigned char v[LEN_BYTES(WINTERNITZ_N)]);
 
 /**
  * Sign the value under private key s, yielding (x_{0:0}, x_{0:1}, x_{0:2}, x_{0:3}, ..., x_{(N/8-1):0}, x_{(N/8-1):1}, x_{(N/8-1):2}, x_{(N/8-1):3})
  *
  * @param s		 the private signing key.
+ * @param X              the fixed N-bit string for key generation (from WOTS-PRF)
  * @param hash
  * @param h		 buffer containing the message hash to be signed, computed outside as h = H(v,data)
  * @param sig
  */
-void winternitz_sign(const unsigned char s[LEN_BYTES(WINTERNITZ_SEC_LVL)], unsigned char *h, unsigned char *sig);
+void winternitz_sign(const unsigned char s[LEN_BYTES(WINTERNITZ_SEC_LVL)], unsigned char X[LEN_BYTES(WINTERNITZ_N)], unsigned char *h, unsigned char *sig);
 
 /**
  * Verify a signature on hash H(v,data)
  *
  * @param v         The verification key, used here as the random nonce as well.
- * @param pubk
- * @param hash1
- * @param hash2
+ * @param X         first component of the public key pk = (pk_0, pk_1, ..., pk_L)
  * @param h
- * @param sig the signature
- * @param x scratch (should match v at the end)
+ * @param sig       the signature
+ * @param y         scratch (should match v at the end)
  */
-unsigned char winternitz_verify(const unsigned char *v, unsigned char *h, const unsigned char *sig, unsigned char *x);
+unsigned char winternitz_verify(const unsigned char *v, unsigned char *X, unsigned char *h, const unsigned char *sig, unsigned char *y);
 
 
 #endif // __WINTERNITZ_H

@@ -54,7 +54,9 @@ struct mss_state {
     uint64_t stack_index, retain_index[MSS_K-1];
     uint64_t treehash_seed[MSS_TREEHASH_SIZE]; //treehash_seed: index of the seed for the treehash of height h
     struct mss_node treehash[MSS_TREEHASH_SIZE];
+#if MSS_STACK_SIZE != 0    
     struct mss_node stack[MSS_STACK_SIZE];
+#endif    
     struct mss_node retain[MSS_RETAIN_SIZE];
     struct mss_node keep[MSS_KEEP_SIZE];
     struct mss_node auth[MSS_HEIGHT];
@@ -86,7 +88,7 @@ void deserialize_mss_signature(unsigned char ots[MSS_OTS_SIZE], struct mss_node 
 
 
 void mss_keygen_core(mmo_t *hash1, mmo_t *hash2, const unsigned char seed[LEN_BYTES(MSS_SEC_LVL)], struct mss_node *node1, struct mss_node *node2, struct mss_state *state, unsigned char pkey[NODE_VALUE_SIZE]);
-void mss_sign_core(struct mss_state *state, unsigned char *seed, struct mss_node *leaf, const char *msg, unsigned short len, mmo_t *hash1, unsigned char *h, uint64_t leaf_index, struct mss_node *node1, struct mss_node *node2, unsigned char *ots, struct mss_node authpath[MSS_HEIGHT]);
+void mss_sign_core(struct mss_state *state, unsigned char *si, unsigned char *ri, struct mss_node *leaf, const char *msg, unsigned short len, mmo_t *hash1, unsigned char *h, uint64_t leaf_index, struct mss_node *node1, struct mss_node *node2, unsigned char *ots, struct mss_node authpath[MSS_HEIGHT]);
 unsigned char mss_verify_core(struct mss_node authpath[MSS_HEIGHT], const char *msg, unsigned short len, unsigned char *h, uint64_t leaf_index, const unsigned char *ots, unsigned char *x, struct mss_node *current_leaf, const unsigned char pkey[NODE_VALUE_SIZE]);
 
 #ifdef DEBUG

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius, Paulo Barreto
+ * Copyright (C) 2015-2017 Geovandro Pereira, Paulo Barreto
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,28 @@
 #include <assert.h>
 #endif
 
-void rmx_salt(unsigned char *rp, const unsigned char *r, const unsigned int rlen) {
+/**
+ * Recommendation is that rp is unpredictable and r is at least 128 bits to provide minimal security
+ *  
+ * @param r         The randomization entropy
+ * @param rlen
+ * @param rp        The expanded randomized value
+ */
+void _rmx_salt(const unsigned char *r, const unsigned int rlen, unsigned char *rp);
+
+/**
+ * The randomization of the plain message as suggested in https://tools.ietf.org/html/draft-irtf-cfrg-rhash-01
+ * 
+ * @param rp                 The salt rp is xored with each data block and that will be concatenated with the randomized data later
+ * @param r
+ * @param rlen
+ * @param d                 The plain data to be signed
+ * @param dlen              The amount of bytes in data
+ * @param randomizeddata     The sequence drp = rp || d1 XOR rp || ... dt XOR rp where di's are data blocks of length HASH_BLOCKSIZE and dt is possibly padded with zeros if needed
+ */
+void _rmx(unsigned char *rp, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned long datalen, unsigned char *randomizeddata);
+
+void _rmx_salt(const unsigned char *r, const unsigned int rlen, unsigned char *rp) {
     // Salt expansion to coincide the hash block size: rp <- r | r | ... | r | r, where last r may be truncated
     unsigned char rplen;  
     if (rlen > HASH_BLOCKSIZE) {
@@ -40,10 +61,10 @@ void rmx_salt(unsigned char *rp, const unsigned char *r, const unsigned int rlen
     }
 }
 
-void rmx(char *randomizeddata, unsigned char *rp, const unsigned char *r, const unsigned char rlen, const char *d, const unsigned long dlen) {
+void _rmx(unsigned char *rp, const unsigned char *r, const unsigned char rlen, const char *d, const unsigned long dlen, unsigned char *randomizeddata) {
     unsigned long len;
  
-    rmx_salt(rp,r,rlen);
+    _rmx_salt(r, rlen, rp);
     
     // Prepare the randomized data: drp <- d1 xor rp || d2 xor rp || ... || dt xor rp
     len = 0;
@@ -57,12 +78,12 @@ void rmx(char *randomizeddata, unsigned char *rp, const unsigned char *r, const 
 
 }
 
-void etcr_hash(unsigned char *h, const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen) {
+void etcr_hash(const unsigned char *r, const unsigned char rlen, const char *data, const unsigned short datalen, unsigned char *h) {
     unsigned char rp[HASH_BLOCKSIZE];
-    char randomizeddata[HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE)];
+    unsigned char randomizeddata[HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE)];
     
     memcpy(&randomizeddata,data,datalen);
-    rmx(randomizeddata, rp, r, rlen, data, datalen);   
+    _rmx(rp, r, rlen, data, datalen, randomizeddata);
     hash32((const unsigned char *)randomizeddata, HASH_BLOCKSIZE*((datalen+HASH_BLOCKSIZE-1)/HASH_BLOCKSIZE), h);
     
 }
@@ -221,15 +242,51 @@ void hash32(const unsigned char *in, unsigned int inlen, unsigned char *out) {
     
 }
 
-void prg16(uint64_t input, const unsigned char seed[16], unsigned char output[16]) {
+void hmac(const unsigned char *key, unsigned int keylen, const unsigned char *message, unsigned int msglen, unsigned char *output) {
     sph_sha256_context ctx;
-    unsigned char temp[32];
+    unsigned char o_key_pad[HASH_BLOCKSIZE], i_key_pad[HASH_BLOCKSIZE], temp[HASH_BLOCKSIZE];
+
+    memset(temp, 0, HASH_BLOCKSIZE);
     
+    if (keylen > HASH_BLOCKSIZE) {
+        sph_sha256_init(&ctx);
+        sph_sha256(&ctx, key, keylen);
+        sph_sha256_close(&ctx, temp); // keys longer than blocksize are shortened
+    }
+    else if (keylen < HASH_BLOCKSIZE) {
+        // keys shorter than blocksize are zero-padded
+        memcpy(temp, key, keylen);
+    } else {
+        memcpy(temp, key, HASH_BLOCKSIZE);
+    }
+        
+    memcpy(o_key_pad, temp, HASH_BLOCKSIZE);
+    memcpy(i_key_pad, temp, HASH_BLOCKSIZE);
+    o_key_pad[0] = ((unsigned int)(0x5c * HASH_BLOCKSIZE)) ^ temp[0];
+    i_key_pad[0] = ((unsigned int)(0x36 * HASH_BLOCKSIZE)) ^ temp[0];
+
     sph_sha256_init(&ctx);
-    sph_sha256(&ctx, seed, 16);
-    sph_sha256(&ctx, (unsigned char *)&input, 8);
+    sph_sha256(&ctx, i_key_pad, HASH_BLOCKSIZE);
+    sph_sha256(&ctx, message, msglen);
     sph_sha256_close(&ctx, temp);
-    memcpy(output, temp, 16);
+    sph_sha256_init(&ctx);
+    sph_sha256(&ctx, o_key_pad, HASH_BLOCKSIZE);
+    sph_sha256(&ctx, temp, HASH_OUTPUTSIZE);
+    sph_sha256_close(&ctx, output);
+    
+}
+
+void prg(const unsigned char seed[HASH_OUTPUTSIZE], uint64_t input, unsigned char output[HASH_OUTPUTSIZE]) {
+    hmac(seed, HASH_OUTPUTSIZE, (unsigned char *)&input, 8, output);
+}
+
+void prg32(const unsigned char key[HASH_OUTPUTSIZE], const unsigned char input[HASH_OUTPUTSIZE], unsigned char output[HASH_OUTPUTSIZE]) {
+    hmac(key, HASH_OUTPUTSIZE, input, HASH_OUTPUTSIZE, output);
+}
+
+void fsgen(const unsigned char seed[HASH_OUTPUTSIZE], unsigned char nextseed[HASH_OUTPUTSIZE], unsigned char rand[HASH_OUTPUTSIZE]) {
+    prg(seed, 1, rand);
+    prg(seed, 0, nextseed);
     
 }
 

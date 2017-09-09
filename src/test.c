@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2017 Geovandro Pereira, Cassius Puodzius
+ * Copyright (C) 2017 Geovandro Pereira
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,13 +34,14 @@ mmo_t hash1, hash2;
 
 unsigned char pkey_test[NODE_VALUE_SIZE];
 
-unsigned char seed[LEN_BYTES(MSS_SEC_LVL)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
+unsigned char seed[LEN_BYTES(WINTERNITZ_N)] = {0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF};
 unsigned char h1[HASH_LEN], h2[HASH_LEN];
 unsigned char sig_bench[WINTERNITZ_L*HASH_LEN];
 unsigned char aux[HASH_LEN];
 
 unsigned short test_mss_signature() {
 
+    unsigned char si[LEN_BYTES(WINTERNITZ_N)], ri[LEN_BYTES(WINTERNITZ_N)];
     unsigned short errors;
     uint64_t j;
 
@@ -56,15 +57,17 @@ unsigned short test_mss_signature() {
     print_retain(&state_bench);
 #endif 
 
+    memcpy(si, seed, LEN_BYTES(WINTERNITZ_N));
+    
     //Sign and verify for all j-th authentication paths
     errors = 0;
     for (j = 0; j < ((uint64_t) 1 << MSS_HEIGHT); j++) {
 
         #if defined(VERBOSE) && defined(DEBUG)
-        printf("Testing MSS for leaf %ld ...", j);
+        printf("Testing MSS for leaf %llu ...", j);
         #endif
-
-        mss_sign_core(&state_bench, seed, &currentLeaf_bench, M, strlen(M)-1, &hash1, h1, j, &nodes[0], &nodes[1], sig_bench, authpath_bench);
+        fsgen(si, si, ri);
+        mss_sign_core(&state_bench, si, ri, &currentLeaf_bench, M, strlen(M)-1, &hash1, h1, j, &nodes[0], &nodes[1], sig_bench, authpath_bench);
 
         #if defined(VERBOSE) && defined(DEBUG)
         Display("", sig_bench, 16);
@@ -107,81 +110,6 @@ int test_AES128() {
     return res;
 }
 
-#ifdef SERIALIZATION
-
-int test_mss_serialization() {
-    unsigned short errors = 0;
-
-    struct mss_node node_in, node_out;
-    struct mss_state state_in, state_out;
-
-    unsigned short index_in = 0, index_out;
-    unsigned char skey_in[LEN_BYTES(MSS_SEC_LVL)], skey_out[LEN_BYTES(MSS_SEC_LVL)];
-
-    unsigned char ots_in[MSS_OTS_SIZE], ots_out[MSS_OTS_SIZE];
-    struct mss_node authpath_in[MSS_HEIGHT], authpath_out[MSS_HEIGHT];
-
-    // MSS NODE
-    printf("Testing MSS Node serialization/deserialization ...\n");
-    unsigned char buffer_node[MSS_NODE_SIZE];
-
-    serialize_mss_node(node_in, buffer_node);
-    deserialize_mss_node(&node_out, buffer_node);
-
-    if (memcmp(&node_in, &node_out, sizeof (node_in)) == 0) {
-        printf(" [OK]\n");
-    } else {
-        errors++;
-        printf(" [ERROR]\n");
-    }
-
-    // MSS STATE
-    printf("Testing MSS State serialization/deserialization...");
-    unsigned char buffer_state[MSS_STATE_SIZE];
-
-    serialize_mss_state(state_in, index_in, buffer_state);
-    deserialize_mss_state(&state_out, &index_out, buffer_state);
-
-    if ((memcmp(&node_in, &node_out, sizeof (node_in)) == 0) && (index_in == index_out)) {
-        printf(" [OK]\n");
-    } else {
-        errors++;
-        printf(" [ERROR]\n");
-    }
-
-    // SKEY
-    printf("Testing MSS skey serialization/deserialization...");
-    unsigned char buffer_skey[MSS_SKEY_SIZE];
-
-    serialize_mss_skey(state_in, index_in, skey_in, buffer_skey);
-    deserialize_mss_skey(&state_out, &index_out, skey_out, buffer_skey);
-
-    if ((memcmp(&skey_in, &skey_out, sizeof (skey_in)) == 0) && (memcmp(&state_in, &state_out, sizeof (state_in)) == 0) && (index_in == index_out)) {
-        printf(" [OK]\n");
-    } else {
-        errors++;
-        printf(" [ERROR]\n");
-    }
-
-    // SIGNATURE
-    printf("Testing MSS Signature serialization/deserialization...");
-    unsigned char buffer_signature[MSS_SIGNATURE_SIZE];
-
-    serialize_mss_signature(ots_in, node_in, authpath_in, buffer_signature);
-    deserialize_mss_signature(ots_out, &node_out, authpath_out, buffer_signature);
-
-    if ((memcmp(&ots_in, &ots_out, sizeof (ots_in)) == 0) && (memcmp(&node_in, &node_out, sizeof (node_in)) == 0) && (memcmp(authpath_in, authpath_out, sizeof (authpath_in)) == 0)) {
-        printf(" [OK]\n");
-    } else {
-        errors++;
-        printf(" [ERROR]\n");
-    }
-
-    return errors;
-}
-
-#endif //test_mss_serialization
-
 unsigned short do_test(enum TEST operation) {
     uint64_t errors = 0;
 
@@ -206,17 +134,6 @@ unsigned short do_test(enum TEST operation) {
                 printf("AES128 tests: FAILED\n\n");
 #endif
             break;
-#ifdef SERIALIZATION
-        case TEST_MSS_SERIALIZATION:
-            errors = test_mss_serialization();
-#ifdef VERBOSE
-            if (errors == 0)
-                printf("Merkle signature serialization tests: PASSED\n\n");
-            else 
-                printf("Merkle signature serialization tests: FAILED. #Errors: %llu \n\n", errors);
-#endif            
-            break;
-#endif
         default:
             break;
     }
@@ -224,7 +141,6 @@ unsigned short do_test(enum TEST operation) {
     return errors;
 }
 
-//#ifdef SELF_TEST
 
 int main() {
     
@@ -236,5 +152,3 @@ int main() {
     
     return 0;
 }
-
-//#endif
