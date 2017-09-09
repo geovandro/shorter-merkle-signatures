@@ -8,7 +8,7 @@ Note: This library is intended for academic purposes. It is not completely ready
 
 # Compilation instructions
 
-Just type make at the root directory.
+Just type `make` at the root directory.
 
 The executable files *mss-bench* and *mss-test* will be generated inside *bin* directory.
 
